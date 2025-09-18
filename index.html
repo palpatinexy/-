@@ -1,0 +1,2228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>上班-窝囊费计时器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e68aff 0%, #0984e3 50%, #6c5ce7 100%);
+            height: 100vh;
+            color: white;
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            height: calc(100vh - 20px);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            flex-shrink: 0;
+        }
+
+        .title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            min-height: 0;
+        }
+
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .settings-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            flex-shrink: 0;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .time-setting {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .time-setting h3 {
+            margin-bottom: 10px;
+            font-size: 1rem;
+            color: #e68aff;
+        }
+
+        .time-input-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+
+        .time-input {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            padding: 6px 8px;
+            color: white;
+            font-size: 0.9rem;
+            text-align: center;
+            width: 50px;
+        }
+
+        .salary-setting {
+            grid-column: span 2;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .salary-input {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: white;
+            font-size: 1rem;
+            width: 120px;
+            text-align: center;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #d22eff, #00a085);
+            border: none;
+            border-radius: 20px;
+            padding: 8px 20px;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 184, 148, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 184, 148, 0.6);
+        }
+
+        .period-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .period-card.morning {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.2), rgba(255, 152, 0, 0.2));
+            border-left: 4px solid #ffc107;
+        }
+
+        .period-card.afternoon {
+            background: linear-gradient(135deg, rgba(156, 39, 176, 0.2), rgba(103, 58, 183, 0.2));
+            border-left: 4px solid #9c27b0;
+        }
+
+        .period-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .period-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .period-time {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .countdown-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .countdown-item {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .countdown-label {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            margin-bottom: 4px;
+        }
+
+        .countdown-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .countdown-value.finished {
+            color: #d22eff;
+            animation: celebration 1s infinite;
+        }
+
+        .progress-section {
+            margin: 10px 0;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+        }
+
+        .progress-container {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            height: 18px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 20px;
+            transition: width 1s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar.morning {
+            background: linear-gradient(90deg, #ffc107, #ff9800);
+        }
+
+        .progress-bar.afternoon {
+            background: linear-gradient(90deg, #9c27b0, #673ab7);
+        }
+
+        .earnings-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .earnings-title {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: #d22eff;
+        }
+
+        .earnings-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #d22eff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+        }
+
+        .earnings-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .earnings-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .earnings-item-value {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #e68aff;
+        }
+
+        .earnings-item-label {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            margin-top: 3px;
+        }
+
+        .status-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e74c3c;
+        }
+
+        .status-indicator.active {
+            background: #d22eff;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.finished {
+            background: #e68aff;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes celebration {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .style-section {
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .style-section h5 {
+            margin-bottom: 10px;
+            font-size: 1rem;
+            color: #e68aff;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 5px;
+        }
+
+        .style-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+
+        .style-row label {
+            min-width: 100px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .style-row select,
+        .style-row input[type="color"],
+        .style-row input[type="text"] {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            padding: 4px 8px;
+            color: white;
+            font-size: 0.85rem;
+        }
+
+        .style-row select {
+            min-width: 100px;
+        }
+
+        .style-row input[type="color"] {
+            width: 40px;
+            height: 30px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .style-row input[type="text"] {
+            width: 150px;
+        }
+
+        .style-row input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .enhanced-select {
+            background: rgba(255, 255, 255, 0.3) !important;
+            color: white !important;
+            border: 1px solid rgba(255, 255, 255, 0.4) !important;
+        }
+
+        .enhanced-select option {
+            background: rgba(50, 50, 50, 0.95) !important;
+            color: white !important;
+            padding: 8px !important;
+        }
+
+        .enhanced-select:hover {
+            background: rgba(255, 255, 255, 0.4) !important;
+        }
+
+        .style-btn {
+            font-size: 0.9rem !important;
+            padding: 8px 16px !important;
+        }
+
+        .small-btn {
+            font-size: 0.75rem !important;
+            padding: 6px 12px !important;
+            border-radius: 15px !important;
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .earnings-details {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .title {
+                font-size: 1.5rem;
+            }
+
+            .countdown-row {
+                grid-template-columns: 1fr;
+            }
+
+            .earnings-details {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
+            <button class="btn style-btn" onclick="toggleStylePanel()">🎨 样式设置</button>
+        </div>
+        <h1 class="title">💼 下班倒计时</h1>
+        <p class="subtitle">😢 快点下班吧</p>
+        <div style="margin-top: 10px; position: relative;">
+            <div id="stylePanel" style="display: none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); z-index: 999; min-width: 400px; max-width: 500px; background: rgba(45, 55, 72, 0.95); border-radius: 15px; padding: 0; border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 13px 13px 0 0; cursor: move; border-bottom: 1px solid rgba(255,255,255,0.2); position: relative;" onmousedown="startDrag(event)">
+                    <h4 style="margin: 0; text-align: center; user-select: none;">🎨 个性化设置</h4>
+                    <button onclick="closeStylePanel(event)" style="position: absolute; top: 10px; right: 15px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; width: 30px; height: 30px; color: white; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">✕</button>
+                </div>
+                <div style="padding: 20px;">
+                
+                <!-- 字体设置 -->
+                <div class="style-section">
+                    <h5>📝 字体设置</h5>
+                    <div class="style-row">
+                        <label>字体大小:</label>
+                        <select id="fontSize" onchange="applyStyles()" class="enhanced-select">
+                            <option value="small">小</option>
+                            <option value="medium" selected>中</option>
+                            <option value="large">大</option>
+                            <option value="xlarge">超大</option>
+                        </select>
+                    </div>
+                    <div class="style-row">
+                        <label>字体样式:</label>
+                        <select id="fontFamily" onchange="applyStyles()" class="enhanced-select">
+                            <option value="default">默认</option>
+                            <option value="serif">宋体</option>
+                            <option value="sans-serif">黑体</option>
+                            <option value="monospace">等宽字体</option>
+                            <option value="cursive">手写体</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 背景设置 -->
+                <div class="style-section">
+                    <h5>🌈 背景设置</h5>
+                    <div class="style-row">
+                        <label>背景类型:</label>
+                        <select id="backgroundType" onchange="toggleBackgroundOptions()" class="enhanced-select">
+                            <option value="gradient">渐变色</option>
+                            <option value="solid">纯色</option>
+                            <option value="image">图片</option>
+                        </select>
+                    </div>
+                    <div id="gradientOptions">
+                        <div class="style-row">
+                            <label>渐变颜色1:</label>
+                            <input type="color" id="gradientColor1" value="#e68aff" onchange="applyStyles()">
+                        </div>
+                        <div class="style-row">
+                            <label>渐变颜色2:</label>
+                            <input type="color" id="gradientColor2" value="#0984e3" onchange="applyStyles()">
+                        </div>
+                        <div class="style-row">
+                            <label>渐变颜色3:</label>
+                            <input type="color" id="gradientColor3" value="#6c5ce7" onchange="applyStyles()">
+                        </div>
+                    </div>
+                    <div id="solidOptions" style="display: none;">
+                        <div class="style-row">
+                            <label>背景颜色:</label>
+                            <input type="color" id="solidColor" value="#6c5ce7" onchange="applyStyles()">
+                        </div>
+                    </div>
+                    <div id="imageOptions" style="display: none;">
+                        <div class="style-row">
+                            <label>选择图片:</label>
+                            <select id="backgroundImageSelect" onchange="handleImageSelect(this)" class="enhanced-select">
+                                <option value="">请选择图片</option>
+                            </select>
+                            <button class="btn small-btn" onclick="refreshImageList()">🔄 刷新列表</button>
+                        </div>
+                        <div class="style-row">
+                            <label>或输入链接:</label>
+                            <input type="text" id="backgroundImage" placeholder="输入图片链接" onchange="applyStyles()">
+                        </div>
+                        <div class="style-row">
+                            <label>添加文件名:</label>
+                            <input type="text" id="customImageName" placeholder="例如: mypic.jpg" style="width: 100px;">
+                            <button class="btn small-btn" onclick="addCustomImage()">➕ 添加</button>
+                        </div>
+                        <div class="style-row">
+                            <label>管理列表:</label>
+                            <button class="btn small-btn" onclick="showCustomImageManager()">📋 管理自定义图片</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 文字颜色设置 -->
+                <div class="style-section">
+                    <h5>🎯 文字颜色设置</h5>
+                    <div class="style-row">
+                        <label>标题颜色:</label>
+                        <input type="color" id="titleColor" value="#ffffff" onchange="applyStyles()">
+                    </div>
+                    <div class="style-row">
+                        <label>收入数字颜色:</label>
+                        <input type="color" id="earningsColor" value="#d22eff" onchange="applyStyles()">
+                    </div>
+                    <div class="style-row">
+                        <label>倒计时数字颜色:</label>
+                        <input type="color" id="countdownColor" value="#ffffff" onchange="applyStyles()">
+                    </div>
+                    <div class="style-row">
+                        <label>进度百分比颜色:</label>
+                        <input type="color" id="progressColor" value="#ffffff" onchange="applyStyles()">
+                    </div>
+                    <div class="style-row">
+                        <label>状态文字颜色:</label>
+                        <input type="color" id="statusColor" value="#ffffff" onchange="applyStyles()">
+                    </div>
+                    <div class="style-row">
+                        <label>设置标签颜色:</label>
+                        <input type="color" id="settingLabelColor" value="#e68aff" onchange="applyStyles()">
+                    </div>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div style="display: flex; gap: 10px; margin-top: 15px; justify-content: center;">
+                    <button class="btn" onclick="saveCustomStyles()">💾 保存设置</button>
+                    <button class="btn" onclick="resetStyles()">🔄 重置默认</button>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="left-panel">
+            <!-- 设置面板 -->
+            <div class="settings-panel">
+                <div class="settings-grid">
+                    <div class="time-setting">
+                        <h3>🌅 上午时段</h3>
+                        <div class="time-input-row">
+                            <span>开始:</span>
+                            <input type="number" class="time-input" id="morningStartHour" placeholder="8" min="0"
+                                   max="23" value="8">
+                            <span>:</span>
+                            <input type="number" class="time-input" id="morningStartMin" placeholder="30" min="0"
+                                   max="59" value="30">
+                        </div>
+                        <div class="time-input-row">
+                            <span>结束:</span>
+                            <input type="number" class="time-input" id="morningEndHour" placeholder="11" min="0"
+                                   max="23" value="11">
+                            <span>:</span>
+                            <input type="number" class="time-input" id="morningEndMin" placeholder="50" min="0" max="59"
+                                   value="50">
+                        </div>
+                    </div>
+
+                    <div class="time-setting">
+                        <h3>🌆 下午时段</h3>
+                        <div class="time-input-row">
+                            <span>开始:</span>
+                            <input type="number" class="time-input" id="afternoonStartHour" placeholder="13" min="0"
+                                   max="23" value="13">
+                            <span>:</span>
+                            <input type="number" class="time-input" id="afternoonStartMin" placeholder="0" min="0"
+                                   max="59" value="0">
+                        </div>
+                        <div class="time-input-row">
+                            <span>结束:</span>
+                            <input type="number" class="time-input" id="afternoonEndHour" placeholder="17" min="0"
+                                   max="23" value="17">
+                            <span>:</span>
+                            <input type="number" class="time-input" id="afternoonEndMin" placeholder="30" min="0"
+                                   max="59" value="30">
+                        </div>
+                    </div>
+
+                    <div class="salary-setting">
+                        <h3>💰 日薪设置</h3>
+                        <div class="time-input-row">
+                            <span>日薪:</span>
+                            <input type="number" class="salary-input" id="dailySalary" placeholder="200" min="0"
+                                   step="0.01">
+                            <span>元</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="btn" onclick="updateSettings()">🚀 应用设置</button>
+                    <span id="saveStatus" style="font-size: 0.8rem; opacity: 0; transition: opacity 0.3s ease;">✅ 已保存</span>
+                </div>
+            </div>
+
+            <!-- 收入统计 -->
+            <div class="earnings-section">
+                <div class="earnings-title">💰 今日收入统计</div>
+                <div class="earnings-value" id="totalEarnings">¥ 0.00</div>
+                <div class="earnings-details">
+                    <div class="earnings-item">
+                        <div class="earnings-item-value" id="morningEarnings">¥ 0.00</div>
+                        <div class="earnings-item-label">上午收入</div>
+                    </div>
+                    <div class="earnings-item">
+                        <div class="earnings-item-value" id="afternoonEarnings">¥ 0.00</div>
+                        <div class="earnings-item-label">下午收入</div>
+                    </div>
+                    <div class="earnings-item">
+                        <div class="earnings-item-value" id="hourlyRate">¥ 0.00</div>
+                        <div class="earnings-item-label">时薪</div>
+                    </div>
+                    <div class="earnings-item">
+                        <div class="earnings-item-value" id="minuteRate">¥ 0.00</div>
+                        <div class="earnings-item-label">分钟收入</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <!-- 上午时段 -->
+            <div class="period-card morning">
+                <div class="status-indicator" id="morningStatusIndicator"></div>
+                <div class="period-header">
+                    <div class="period-title">🌅 上午时段</div>
+                    <div class="period-time" id="morningTimeRange">08:30 - 11:50</div>
+                </div>
+
+                <div class="countdown-row">
+                    <div class="countdown-item">
+                        <div class="countdown-label">距离上午结束</div>
+                        <div class="countdown-value" id="morningCountdown">--:--:--</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-label">上午状态</div>
+                        <div class="countdown-value" id="morningStatusText">未开始</div>
+                    </div>
+                </div>
+
+                <div class="progress-section">
+                    <div class="progress-header">
+                        <span>上午进度</span>
+                        <span id="morningProgress">0%</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar morning" id="morningProgressBar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 下午时段 -->
+            <div class="period-card afternoon">
+                <div class="status-indicator" id="afternoonStatusIndicator"></div>
+                <div class="period-header">
+                    <div class="period-title">🌆 下午时段</div>
+                    <div class="period-time" id="afternoonTimeRange">13:00 - 17:30</div>
+                </div>
+
+                <div class="countdown-row">
+                    <div class="countdown-item">
+                        <div class="countdown-label">距离下午结束</div>
+                        <div class="countdown-value" id="afternoonCountdown">--:--:--</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-label">下午状态</div>
+                        <div class="countdown-value" id="afternoonStatusText">未开始</div>
+                    </div>
+                </div>
+
+                <div class="progress-section">
+                    <div class="progress-header">
+                        <span>下午进度</span>
+                        <span id="afternoonProgress">0%</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar afternoon" id="afternoonProgressBar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let workSchedule = {
+    morning: { start: null, end: null },
+    afternoon: { start: null, end: null },
+    dailySalary: 0
+};
+let updateInterval = null;
+
+// 显示保存状态
+function showSaveStatus(message = '✅ 已保存', duration = 2000) {
+    const statusElement = document.getElementById('saveStatus');
+    if (statusElement) {
+        statusElement.textContent = message;
+        statusElement.style.opacity = '1';
+        setTimeout(() => {
+            statusElement.style.opacity = '0';
+        }, duration);
+    }
+}
+
+// 保存设置到本地存储
+function saveSettings() {
+    const settings = {
+        morningStartHour: parseInt(document.getElementById('morningStartHour').value) || 8,
+        morningStartMin: parseInt(document.getElementById('morningStartMin').value) || 30,
+        morningEndHour: parseInt(document.getElementById('morningEndHour').value) || 11,
+        morningEndMin: parseInt(document.getElementById('morningEndMin').value) || 50,
+        afternoonStartHour: parseInt(document.getElementById('afternoonStartHour').value) || 13,
+        afternoonStartMin: parseInt(document.getElementById('afternoonStartMin').value) || 00,
+        afternoonEndHour: parseInt(document.getElementById('afternoonEndHour').value) || 17,
+        afternoonEndMin: parseInt(document.getElementById('afternoonEndMin').value) || 30,
+        dailySalary: parseFloat(document.getElementById('dailySalary').value) || 00
+    };
+    
+    localStorage.setItem('workTimerSettings', JSON.stringify(settings));
+    console.log('设置已保存到本地存储:', settings);
+    showSaveStatus();
+}
+
+// 清除保存的设置
+function clearSettings() {
+    if (confirm('确定要清除所有保存的设置吗？这将恢复到默认值。')) {
+        localStorage.removeItem('workTimerSettings');
+        
+        // 恢复默认值
+        document.getElementById('morningStartHour').value = 8;
+        document.getElementById('morningStartMin').value = 30;
+        document.getElementById('morningEndHour').value = 11;
+        document.getElementById('morningEndMin').value = 50;
+        document.getElementById('afternoonStartHour').value = 13;
+        document.getElementById('afternoonStartMin').value = 00;
+        document.getElementById('afternoonEndHour').value = 17;
+        document.getElementById('afternoonEndMin').value = 30;
+        document.getElementById('dailySalary').value = '';
+        
+        console.log('设置已清除，恢复默认值');
+        showSaveStatus('🗑️ 已清除', 2000);
+        
+        // 重新应用设置
+        updateSettings();
+    }
+}
+
+// 从本地存储加载设置
+function loadSettings() {
+    try {
+        const savedSettings = localStorage.getItem('workTimerSettings');
+        if (savedSettings) {
+            const settings = JSON.parse(savedSettings);
+            console.log('从本地存储加载设置:', settings);
+            
+            // 恢复界面设置
+            document.getElementById('morningStartHour').value = settings.morningStartHour || 8;
+            document.getElementById('morningStartMin').value = settings.morningStartMin || 30;
+            document.getElementById('morningEndHour').value = settings.morningEndHour || 11;
+            document.getElementById('morningEndMin').value = settings.morningEndMin || 50;
+            document.getElementById('afternoonStartHour').value = settings.afternoonStartHour || 13;
+            document.getElementById('afternoonStartMin').value = settings.afternoonStartMin || 00;
+            document.getElementById('afternoonEndHour').value = settings.afternoonEndHour || 17;
+            document.getElementById('afternoonEndMin').value = settings.afternoonEndMin || 30;
+            document.getElementById('dailySalary').value = settings.dailySalary || 00;
+            
+            return settings;
+        }
+    } catch (error) {
+        console.error('加载设置时出错:', error);
+    }
+    return null;
+}
+
+// 更新设置
+function updateSettings() {
+    console.log('updateSettings 函数被调用');
+    const today = new Date();
+    console.log('当前时间:', today);
+
+    // 获取上午时间设置
+    const morningStartHour = parseInt(document.getElementById('morningStartHour').value) || 8;
+    const morningStartMin = parseInt(document.getElementById('morningStartMin').value) || 30;
+    const morningEndHour = parseInt(document.getElementById('morningEndHour').value) || 11;
+    const morningEndMin = parseInt(document.getElementById('morningEndMin').value) || 50;
+
+    // 获取下午时间设置
+    const afternoonStartHour = parseInt(document.getElementById('afternoonStartHour').value) || 13;
+    const afternoonStartMin = parseInt(document.getElementById('afternoonStartMin').value) || 0;
+    const afternoonEndHour = parseInt(document.getElementById('afternoonEndHour').value) || 17;
+    const afternoonEndMin = parseInt(document.getElementById('afternoonEndMin').value) || 30;
+
+    // 获取日薪设置
+    const dailySalary = parseFloat(document.getElementById('dailySalary').value) || 0;
+
+    console.log('设置参数:', {
+        morningStartHour, morningStartMin, morningEndHour, morningEndMin,
+        afternoonStartHour, afternoonStartMin, afternoonEndHour, afternoonEndMin,
+        dailySalary
+    });
+
+    // 保存设置到本地存储
+    saveSettings();
+
+    // 设置工作时间
+    workSchedule.morning.start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), morningStartHour, morningStartMin, 0);
+    workSchedule.morning.end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), morningEndHour, morningEndMin, 0);
+    workSchedule.afternoon.start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), afternoonStartHour, afternoonStartMin, 0);
+    workSchedule.afternoon.end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), afternoonEndHour, afternoonEndMin, 0);
+    workSchedule.dailySalary = dailySalary;
+
+    console.log('工作时间表:', workSchedule);
+
+    // 更新显示的时间范围
+    document.getElementById('morningTimeRange').textContent = `${formatTime(workSchedule.morning.start)} - ${formatTime(workSchedule.morning.end)}`;
+    document.getElementById('afternoonTimeRange').textContent = `${formatTime(workSchedule.afternoon.start)} - ${formatTime(workSchedule.afternoon.end)}`;
+
+    // 计算时薪和分钟收入
+    const totalWorkMinutes = getTotalWorkMinutes();
+    const hourlyRate = totalWorkMinutes > 0 ? (dailySalary / (totalWorkMinutes / 60)) : 0;
+    const minuteRate = totalWorkMinutes > 0 ? (dailySalary / totalWorkMinutes) : 0;
+
+    document.getElementById('hourlyRate').textContent = `¥ ${hourlyRate.toFixed(2)}`;
+    document.getElementById('minuteRate').textContent = `¥ ${minuteRate.toFixed(4)}`;
+
+    console.log('时薪计算:', { totalWorkMinutes, hourlyRate, minuteRate });
+
+    // 开始更新倒计时
+    if (updateInterval) {
+        clearInterval(updateInterval);
+    }
+    updateCountdown();
+    updateInterval = setInterval(updateCountdown, 1000);
+    console.log('倒计时已启动');
+}
+
+// 格式化时间显示
+function formatTime(date) {
+    return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+}
+
+// 格式化倒计时显示
+function formatCountdown(milliseconds) {
+    if (milliseconds <= 0) return '00:00:00';
+
+    const hours = Math.floor(milliseconds / (1000 * 60 * 60));
+    const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((milliseconds % (1000 * 60)) / 1000);
+
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// 获取总工作分钟数
+function getTotalWorkMinutes() {
+    const morningMinutes = (workSchedule.morning.end - workSchedule.morning.start) / (1000 * 60);
+    const afternoonMinutes = (workSchedule.afternoon.end - workSchedule.afternoon.start) / (1000 * 60);
+    return morningMinutes + afternoonMinutes;
+}
+
+// 更新倒计时和进度
+function updateCountdown() {
+    const now = new Date();
+
+    // 更新上午时段
+    updatePeriod('morning', now);
+
+    // 更新下午时段
+    updatePeriod('afternoon', now);
+
+    // 更新收入统计
+    updateEarnings(now);
+}
+
+// 更新单个时段
+function updatePeriod(period, now) {
+    const start = workSchedule[period].start;
+    const end = workSchedule[period].end;
+
+    if (!start || !end) return;
+
+    const statusIndicator = document.getElementById(`${period}StatusIndicator`);
+    const countdownElement = document.getElementById(`${period}Countdown`);
+    const statusTextElement = document.getElementById(`${period}StatusText`);
+    const progressElement = document.getElementById(`${period}Progress`);
+    const progressBarElement = document.getElementById(`${period}ProgressBar`);
+
+    let status, countdown, progress;
+
+    // 修复时段判断逻辑
+    if (period === 'morning') {
+        if (now < start) {
+            // 上午未开始
+            status = '未开始';
+            countdown = formatCountdown(start - now);
+            progress = 0;
+            statusIndicator.className = 'status-indicator';
+            countdownElement.className = 'countdown-value';
+            if (statusTextElement) statusTextElement.textContent = '未开始';
+        } else if (now >= start && now <= end) {
+            // 上午进行中
+            status = '进行中';
+            countdown = formatCountdown(end - now);
+            const elapsed = now - start;
+            const total = end - start;
+            progress = (elapsed / total) * 100;
+            statusIndicator.className = 'status-indicator active';
+            countdownElement.className = 'countdown-value';
+            if (statusTextElement) statusTextElement.textContent = '进行中';
+        } else {
+            // 上午已结束
+            status = '已完成';
+            countdown = '00:00:00';
+            progress = 100;
+            statusIndicator.className = 'status-indicator finished';
+            countdownElement.className = 'countdown-value finished';
+            if (statusTextElement) statusTextElement.textContent = '已完成';
+        }
+    } else if (period === 'afternoon') {
+        if (now < start) {
+            // 下午未开始 - 显示距离下午开始的倒计时
+            status = '未开始';
+            countdown = formatCountdown(start - now);
+            progress = 0;
+            statusIndicator.className = 'status-indicator';
+            countdownElement.className = 'countdown-value';
+            if (statusTextElement) statusTextElement.textContent = '未开始';
+            // 修改标签显示为"距离下午开始"
+            const countdownLabel = countdownElement.parentElement.querySelector('.countdown-label');
+            if (countdownLabel) {
+                countdownLabel.textContent = '距离下午开始';
+            }
+        } else if (now >= start && now <= end) {
+            // 下午进行中
+            status = '进行中';
+            countdown = formatCountdown(end - now);
+            const elapsed = now - start;
+            const total = end - start;
+            progress = (elapsed / total) * 100;
+            statusIndicator.className = 'status-indicator active';
+            countdownElement.className = 'countdown-value';
+            if (statusTextElement) statusTextElement.textContent = '进行中';
+            // 恢复标签显示为"距离下午结束"
+            const countdownLabel = countdownElement.parentElement.querySelector('.countdown-label');
+            if (countdownLabel) {
+                countdownLabel.textContent = '距离下午结束';
+            }
+        } else {
+            // 下午已结束
+            status = '已完成';
+            countdown = '00:00:00';
+            progress = 100;
+            statusIndicator.className = 'status-indicator finished';
+            countdownElement.className = 'countdown-value finished';
+            if (statusTextElement) statusTextElement.textContent = '已完成';
+            // 恢复标签显示
+            const countdownLabel = countdownElement.parentElement.querySelector('.countdown-label');
+            if (countdownLabel) {
+                countdownLabel.textContent = '距离下午结束';
+            }
+        }
+    }
+
+    countdownElement.textContent = countdown;
+    progressElement.textContent = `${progress.toFixed(1)}%`;
+    progressBarElement.style.width = `${progress}%`;
+}
+
+// 更新收入统计
+function updateEarnings(now) {
+    if (workSchedule.dailySalary <= 0) {
+        document.getElementById('totalEarnings').textContent = '¥ 0.00';
+        document.getElementById('morningEarnings').textContent = '¥ 0.00';
+        document.getElementById('afternoonEarnings').textContent = '¥ 0.00';
+        return;
+    }
+
+    const totalWorkMinutes = getTotalWorkMinutes();
+    const minuteRate = workSchedule.dailySalary / totalWorkMinutes;
+
+    // 计算上午收入
+    let morningEarnings = 0;
+    const morningStart = workSchedule.morning.start;
+    const morningEnd = workSchedule.morning.end;
+    if (now > morningStart) {
+        const morningWorkedMinutes = Math.min(now - morningStart, morningEnd - morningStart) / (1000 * 60);
+        morningEarnings = morningWorkedMinutes * minuteRate;
+    }
+
+    // 计算下午收入
+    let afternoonEarnings = 0;
+    const afternoonStart = workSchedule.afternoon.start;
+    const afternoonEnd = workSchedule.afternoon.end;
+    if (now > afternoonStart) {
+        const afternoonWorkedMinutes = Math.min(now - afternoonStart, afternoonEnd - afternoonStart) / (1000 * 60);
+        afternoonEarnings = afternoonWorkedMinutes * minuteRate;
+    }
+
+    const totalEarnings = morningEarnings + afternoonEarnings;
+
+    document.getElementById('totalEarnings').textContent = `¥ ${totalEarnings.toFixed(2)}`;
+    document.getElementById('morningEarnings').textContent = `¥ ${morningEarnings.toFixed(2)}`;
+    document.getElementById('afternoonEarnings').textContent = `¥ ${afternoonEarnings.toFixed(2)}`;
+}
+
+// 添加输入验证
+function addInputValidation() {
+    const timeInputs = document.querySelectorAll('.time-input');
+    timeInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            let value = parseInt(this.value);
+            if (this.id.includes('Hour')) {
+                if (value < 0) this.value = 0;
+                if (value > 23) this.value = 23;
+            } else {
+                if (value < 0) this.value = 0;
+                if (value > 59) this.value = 59;
+            }
+        });
+    });
+
+    document.getElementById('dailySalary').addEventListener('input', function() {
+        if (parseFloat(this.value) < 0) this.value = 0;
+    });
+}
+
+// 添加自动保存功能
+function addAutoSave() {
+    const inputs = [
+        'morningStartHour', 'morningStartMin', 'morningEndHour', 'morningEndMin',
+        'afternoonStartHour', 'afternoonStartMin', 'afternoonEndHour', 'afternoonEndMin',
+        'dailySalary'
+    ];
+    
+    inputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.addEventListener('change', function() {
+                // 延迟保存，避免频繁保存
+                clearTimeout(input.saveTimeout);
+                input.saveTimeout = setTimeout(() => {
+                    saveSettings();
+                    console.log(`${inputId} 已自动保存`);
+                }, 500);
+            });
+            
+            // 添加输入时的实时反馈
+            input.addEventListener('input', function() {
+                showSaveStatus('💾 正在保存...', 1000);
+            });
+        }
+    });
+}
+
+// 页面加载完成后初始化
+window.addEventListener('load', function() {
+    console.log('页面加载完成，开始初始化...');
+    
+    // 加载保存的设置
+    const savedSettings = loadSettings();
+    
+    addInputValidation();
+    addAutoSave();
+
+    // 初始化图片列表和样式设置
+    refreshImageList();
+    loadCustomStyles();
+    loadSelectedImage();
+
+    // 如果有保存的设置，自动应用
+    if (savedSettings) {
+        console.log('发现保存的设置，自动应用...');
+        updateSettings();
+    } else {
+        console.log('没有保存的设置，使用默认值');
+        // 使用默认值并保存
+        saveSettings();
+        updateSettings();
+    }
+
+    // 添加键盘事件监听
+    document.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            updateSettings();
+        }
+    });
+    
+    console.log('初始化完成');
+});
+
+// 获取images文件夹中的图片列表
+async function loadImageList() {
+    try {
+        const imageList = [];
+        
+        // 支持的图片格式
+        const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'];
+        
+        // 常见的图片文件名模式（更全面的列表）
+        const commonNames = [
+            'bg', 'background', 'wallpaper', 'backdrop', 'cover',
+            'image', 'img', 'photo', 'pic', 'picture',
+            '背景', '壁纸', '图片', '图像',
+            // 数字序列
+            '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+            '01', '02', '03', '04', '05', '06', '07', '08', '09',
+            // 带前缀的数字
+            'image1', 'image2', 'image3', 'img1', 'img2', 'img3',
+            'pic1', 'pic2', 'pic3', 'photo1', 'photo2', 'photo3',
+            'bg1', 'bg2', 'bg3', 'background1', 'background2', 'background3'
+        ];
+        
+        console.log('开始扫描images文件夹中的图片...');
+        
+        // 获取用户自定义添加的图片文件名
+        const customImages = getCustomImageNames();
+        if (customImages.length > 0) {
+            console.log('包含用户自定义图片:', customImages);
+            commonNames.push(...customImages);
+        }
+        
+        // 并发检测所有可能的图片文件
+        const promises = [];
+        
+        for (const extension of imageExtensions) {
+            for (const name of commonNames) {
+                const imageName = `${name}.${extension}`;
+                const imagePath = `images/${imageName}`;
+                
+                // 创建检测Promise
+                const promise = testImageExists(imagePath).then(exists => {
+                    if (exists) {
+                        return {
+                            name: imageName,
+                            path: imagePath,
+                            basename: name,
+                            extension: extension
+                        };
+                    }
+                    return null;
+                });
+                
+                promises.push(promise);
+            }
+        }
+        
+        // 等待所有检测完成
+        const results = await Promise.all(promises);
+        
+        // 过滤出存在的图片
+        const foundImages = results.filter(result => result !== null);
+        
+        // 按文件名排序
+        foundImages.sort((a, b) => {
+            // 优先显示常见的背景图片名称
+            const priorityNames = ['bg', 'background', 'wallpaper'];
+            const aPriority = priorityNames.indexOf(a.basename);
+            const bPriority = priorityNames.indexOf(b.basename);
+            
+            if (aPriority !== -1 && bPriority === -1) return -1;
+            if (aPriority === -1 && bPriority !== -1) return 1;
+            if (aPriority !== -1 && bPriority !== -1) return aPriority - bPriority;
+            
+            // 其他按字母顺序排序
+            return a.name.localeCompare(b.name);
+        });
+        
+        console.log(`扫描完成，找到 ${foundImages.length} 张图片:`, foundImages.map(img => img.name));
+        
+        return foundImages;
+        
+    } catch (error) {
+        console.error('加载图片列表时出错:', error);
+        return [];
+    }
+}
+
+// 测试图片是否存在的辅助函数
+function testImageExists(imagePath) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        let resolved = false;
+        
+        const resolveOnce = (result) => {
+            if (!resolved) {
+                resolved = true;
+                resolve(result);
+            }
+        };
+        
+        img.onload = () => {
+            // 确保图片真的加载成功（有些情况下onload会被错误触发）
+            if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+                resolveOnce(true);
+            } else {
+                resolveOnce(false);
+            }
+        };
+        
+        img.onerror = () => resolveOnce(false);
+        img.onabort = () => resolveOnce(false);
+        
+        // 设置较短的超时时间提高扫描速度
+        setTimeout(() => resolveOnce(false), 1500);
+        
+        // 开始加载图片
+        img.src = imagePath;
+    });
+}
+
+// 刷新图片列表
+async function refreshImageList() {
+    const select = document.getElementById('backgroundImageSelect');
+    if (!select) return;
+    
+    const currentValue = select.value;
+    
+    // 清空现有选项
+    select.innerHTML = '<option value="">请选择图片</option>';
+    
+    try {
+        // 显示加载状态
+        const loadingOption = document.createElement('option');
+        loadingOption.value = "";
+        loadingOption.textContent = "正在加载图片列表...";
+        loadingOption.disabled = true;
+        select.appendChild(loadingOption);
+        
+        const imageList = await loadImageList();
+        
+        // 移除加载状态
+        select.innerHTML = '<option value="">请选择图片</option>';
+        
+        if (imageList.length > 0) {
+            imageList.forEach(image => {
+                const option = document.createElement('option');
+                option.value = image.path;
+                option.textContent = image.name;
+                select.appendChild(option);
+            });
+            
+            // 恢复之前选择的值
+            if (currentValue && imageList.some(img => img.path === currentValue)) {
+                select.value = currentValue;
+            }
+            
+            console.log(`成功加载 ${imageList.length} 张图片:`, imageList);
+        } else {
+            // 没有找到图片时的提示
+            const noImageOption = document.createElement('option');
+            noImageOption.value = "";
+            noImageOption.textContent = "未找到图片文件";
+            noImageOption.disabled = true;
+            select.appendChild(noImageOption);
+            
+            console.log('未在images文件夹中找到支持的图片文件');
+        }
+    } catch (error) {
+        console.error('刷新图片列表时出错:', error);
+        // 错误时的提示
+        select.innerHTML = '<option value="">加载图片列表失败</option>';
+    }
+}
+
+// 处理图片选择
+function handleImageSelect(select) {
+    const imagePath = select.value;
+    if (imagePath) {
+        document.getElementById('backgroundImage').value = imagePath;
+        localStorage.setItem('selectedBackgroundImage', imagePath);
+        applyStyles();
+    }
+}
+
+// 切换背景选项显示
+function toggleBackgroundOptions() {
+    const backgroundType = document.getElementById('backgroundType').value;
+    const gradientOptions = document.getElementById('gradientOptions');
+    const solidOptions = document.getElementById('solidOptions');
+    const imageOptions = document.getElementById('imageOptions');
+    
+    gradientOptions.style.display = 'none';
+    solidOptions.style.display = 'none';
+    imageOptions.style.display = 'none';
+    
+    switch(backgroundType) {
+        case 'gradient':
+            gradientOptions.style.display = 'block';
+            break;
+        case 'solid':
+            solidOptions.style.display = 'block';
+            break;
+        case 'image':
+            imageOptions.style.display = 'block';
+            break;
+    }
+    
+    applyStyles();
+}
+
+// 加载保存的图片选择
+function loadSelectedImage() {
+    try {
+        const selectedImage = localStorage.getItem('selectedBackgroundImage');
+        if (selectedImage) {
+            document.getElementById('backgroundImage').value = selectedImage;
+            const select = document.getElementById('backgroundImageSelect');
+            if (select) {
+                const option = Array.from(select.options).find(opt => opt.value === selectedImage);
+                if (option) {
+                    select.value = selectedImage;
+                }
+            }
+        }
+    } catch (error) {
+        console.error('加载选择的图片时出错:', error);
+    }
+}
+
+// 切换样式面板显示
+function toggleStylePanel() {
+    const panel = document.getElementById('stylePanel');
+    if (panel) {
+        if (panel.style.display === 'none' || panel.style.display === '') {
+            panel.style.display = 'block';
+        } else {
+            panel.style.display = 'none';
+        }
+    }
+}
+
+// 关闭样式面板
+function closeStylePanel(event) {
+    if (event) {
+        event.stopPropagation();
+    }
+    const panel = document.getElementById('stylePanel');
+    if (panel) {
+        panel.style.display = 'none';
+    }
+}
+
+// 拖拽功能
+let isDragging = false;
+let dragOffset = { x: 0, y: 0 };
+
+function startDrag(event) {
+    isDragging = true;
+    const panel = document.getElementById('stylePanel');
+    const rect = panel.getBoundingClientRect();
+    dragOffset.x = event.clientX - rect.left;
+    dragOffset.y = event.clientY - rect.top;
+    
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', stopDrag);
+}
+
+function drag(event) {
+    if (!isDragging) return;
+    
+    const panel = document.getElementById('stylePanel');
+    panel.style.left = (event.clientX - dragOffset.x) + 'px';
+    panel.style.top = (event.clientY - dragOffset.y) + 'px';
+    panel.style.transform = 'none';
+}
+
+function stopDrag() {
+    isDragging = false;
+    document.removeEventListener('mousemove', drag);
+    document.removeEventListener('mouseup', stopDrag);
+}
+
+// 应用样式
+function applyStyles() {
+    try {
+        const fontSize = document.getElementById('fontSize')?.value || 'medium';
+        const fontFamily = document.getElementById('fontFamily')?.value || 'default';
+        const backgroundType = document.getElementById('backgroundType')?.value || 'gradient';
+        
+        // 应用字体大小
+        const fontSizeMap = {
+            'small': '0.85em',
+            'medium': '1em',
+            'large': '1.15em',
+            'xlarge': '1.3em'
+        };
+        document.body.style.fontSize = fontSizeMap[fontSize];
+        
+        // 应用字体样式
+        const fontFamilyMap = {
+            'default': "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+            'serif': 'serif',
+            'sans-serif': 'sans-serif',
+            'monospace': 'monospace',
+            'cursive': 'cursive'
+        };
+        document.body.style.fontFamily = fontFamilyMap[fontFamily];
+        
+        // 应用背景
+        switch(backgroundType) {
+            case 'gradient':
+                const color1 = document.getElementById('gradientColor1')?.value || '#e68aff';
+                const color2 = document.getElementById('gradientColor2')?.value || '#0984e3';
+                const color3 = document.getElementById('gradientColor3')?.value || '#6c5ce7';
+                document.body.style.background = `linear-gradient(135deg, ${color1} 0%, ${color2} 50%, ${color3} 100%)`;
+                break;
+            case 'solid':
+                const solidColor = document.getElementById('solidColor')?.value || '#6c5ce7';
+                document.body.style.background = solidColor;
+                break;
+            case 'image':
+                const backgroundImage = document.getElementById('backgroundImage')?.value;
+                if (backgroundImage) {
+                    document.body.style.background = `url('${backgroundImage}') center/cover no-repeat`;
+                }
+                break;
+        }
+        
+        // 应用文字颜色
+        const titleColor = document.getElementById('titleColor')?.value || '#ffffff';
+        const earningsColor = document.getElementById('earningsColor')?.value || '#d22eff';
+        const countdownColor = document.getElementById('countdownColor')?.value || '#ffffff';
+        const progressColor = document.getElementById('progressColor')?.value || '#ffffff';
+        const statusColor = document.getElementById('statusColor')?.value || '#ffffff';
+        const settingLabelColor = document.getElementById('settingLabelColor')?.value || '#e68aff';
+        
+        const titleElements = document.querySelectorAll('.title, .period-title');
+        titleElements.forEach(el => el.style.color = titleColor);
+        
+        const earningsElements = document.querySelectorAll('.earnings-value, .earnings-item-value');
+        earningsElements.forEach(el => el.style.color = earningsColor);
+        
+        const countdownElements = document.querySelectorAll('.countdown-value');
+        countdownElements.forEach(el => el.style.color = countdownColor);
+        
+        const progressElements = document.querySelectorAll('.progress-header span:last-child');
+        progressElements.forEach(el => el.style.color = progressColor);
+        
+        const statusElements = document.querySelectorAll('.countdown-value, .earnings-item-label');
+        statusElements.forEach(el => el.style.color = statusColor);
+        
+        const settingLabelElements = document.querySelectorAll('.time-setting h3, .salary-setting h3, .earnings-title, .style-section h5');
+        settingLabelElements.forEach(el => el.style.color = settingLabelColor);
+        
+    } catch (error) {
+        console.error('应用样式时出错:', error);
+    }
+}
+
+// 保存自定义样式
+function saveCustomStyles() {
+    try {
+        const styles = {
+            fontSize: document.getElementById('fontSize')?.value,
+            fontFamily: document.getElementById('fontFamily')?.value,
+            backgroundType: document.getElementById('backgroundType')?.value,
+            gradientColor1: document.getElementById('gradientColor1')?.value,
+            gradientColor2: document.getElementById('gradientColor2')?.value,
+            gradientColor3: document.getElementById('gradientColor3')?.value,
+            solidColor: document.getElementById('solidColor')?.value,
+            backgroundImage: document.getElementById('backgroundImage')?.value,
+            titleColor: document.getElementById('titleColor')?.value,
+            earningsColor: document.getElementById('earningsColor')?.value,
+            countdownColor: document.getElementById('countdownColor')?.value,
+            progressColor: document.getElementById('progressColor')?.value,
+            statusColor: document.getElementById('statusColor')?.value,
+            settingLabelColor: document.getElementById('settingLabelColor')?.value
+        };
+        
+        localStorage.setItem('customStyles', JSON.stringify(styles));
+        console.log('自定义样式已保存:', styles);
+        alert('样式设置已保存！');
+    } catch (error) {
+        console.error('保存样式时出错:', error);
+        alert('保存样式失败！');
+    }
+}
+
+// 重置样式
+function resetStyles() {
+    if (confirm('确定要重置所有样式设置吗？')) {
+        localStorage.removeItem('customStyles');
+        localStorage.removeItem('selectedBackgroundImage');
+        
+        // 重置为默认值
+        if (document.getElementById('fontSize')) document.getElementById('fontSize').value = 'medium';
+        if (document.getElementById('fontFamily')) document.getElementById('fontFamily').value = 'default';
+        if (document.getElementById('backgroundType')) document.getElementById('backgroundType').value = 'gradient';
+        if (document.getElementById('gradientColor1')) document.getElementById('gradientColor1').value = '#e68aff';
+        if (document.getElementById('gradientColor2')) document.getElementById('gradientColor2').value = '#0984e3';
+        if (document.getElementById('gradientColor3')) document.getElementById('gradientColor3').value = '#6c5ce7';
+        if (document.getElementById('solidColor')) document.getElementById('solidColor').value = '#6c5ce7';
+        if (document.getElementById('backgroundImage')) document.getElementById('backgroundImage').value = '';
+        if (document.getElementById('backgroundImageSelect')) document.getElementById('backgroundImageSelect').value = '';
+        if (document.getElementById('titleColor')) document.getElementById('titleColor').value = '#ffffff';
+        if (document.getElementById('earningsColor')) document.getElementById('earningsColor').value = '#d22eff';
+        if (document.getElementById('countdownColor')) document.getElementById('countdownColor').value = '#ffffff';
+        if (document.getElementById('progressColor')) document.getElementById('progressColor').value = '#ffffff';
+        if (document.getElementById('statusColor')) document.getElementById('statusColor').value = '#ffffff';
+        if (document.getElementById('settingLabelColor')) document.getElementById('settingLabelColor').value = '#e68aff';
+        
+        toggleBackgroundOptions();
+        applyStyles();
+        alert('样式已重置为默认设置！');
+    }
+}
+
+// 加载自定义样式
+function loadCustomStyles() {
+    try {
+        const savedStyles = localStorage.getItem('customStyles');
+        if (savedStyles) {
+            const styles = JSON.parse(savedStyles);
+            
+            // 恢复样式设置
+            if (styles.fontSize && document.getElementById('fontSize')) document.getElementById('fontSize').value = styles.fontSize;
+            if (styles.fontFamily && document.getElementById('fontFamily')) document.getElementById('fontFamily').value = styles.fontFamily;
+            if (styles.backgroundType && document.getElementById('backgroundType')) document.getElementById('backgroundType').value = styles.backgroundType;
+            if (styles.gradientColor1 && document.getElementById('gradientColor1')) document.getElementById('gradientColor1').value = styles.gradientColor1;
+            if (styles.gradientColor2 && document.getElementById('gradientColor2')) document.getElementById('gradientColor2').value = styles.gradientColor2;
+            if (styles.gradientColor3 && document.getElementById('gradientColor3')) document.getElementById('gradientColor3').value = styles.gradientColor3;
+            if (styles.solidColor && document.getElementById('solidColor')) document.getElementById('solidColor').value = styles.solidColor;
+            if (styles.backgroundImage && document.getElementById('backgroundImage')) document.getElementById('backgroundImage').value = styles.backgroundImage;
+            if (styles.titleColor && document.getElementById('titleColor')) document.getElementById('titleColor').value = styles.titleColor;
+            if (styles.earningsColor && document.getElementById('earningsColor')) document.getElementById('earningsColor').value = styles.earningsColor;
+            if (styles.countdownColor && document.getElementById('countdownColor')) document.getElementById('countdownColor').value = styles.countdownColor;
+            if (styles.progressColor && document.getElementById('progressColor')) document.getElementById('progressColor').value = styles.progressColor;
+            if (styles.statusColor && document.getElementById('statusColor')) document.getElementById('statusColor').value = styles.statusColor;
+            if (styles.settingLabelColor && document.getElementById('settingLabelColor')) document.getElementById('settingLabelColor').value = styles.settingLabelColor;
+            
+            toggleBackgroundOptions();
+            applyStyles();
+            
+            console.log('自定义样式已加载:', styles);
+        }
+    } catch (error) {
+        console.error('加载自定义样式时出错:', error);
+    }
+}
+
+// 获取自定义图片文件名列表
+function getCustomImageNames() {
+    try {
+        const saved = localStorage.getItem('customImageNames');
+        return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+        console.error('获取自定义图片列表时出错:', error);
+        return [];
+    }
+}
+
+// 保存自定义图片文件名列表
+function saveCustomImageNames(names) {
+    try {
+        localStorage.setItem('customImageNames', JSON.stringify(names));
+    } catch (error) {
+        console.error('保存自定义图片列表时出错:', error);
+    }
+}
+
+// 添加自定义图片文件名
+function addCustomImage() {
+    const input = document.getElementById('customImageName');
+    const imageName = input.value.trim();
+    
+    if (!imageName) {
+        alert('请输入图片文件名！');
+        return;
+    }
+    
+    // 验证文件名格式
+    const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'];
+    const extension = imageName.split('.').pop()?.toLowerCase();
+    
+    if (!extension || !validExtensions.includes(extension)) {
+        alert('请输入有效的图片文件名！\n支持的格式: ' + validExtensions.join(', '));
+        return;
+    }
+    
+    // 移除扩展名，只保存基础名称
+    const baseName = imageName.replace(/\.[^/.]+$/, '');
+    
+    // 获取现有的自定义图片列表
+    const customImages = getCustomImageNames();
+    
+    // 检查是否已存在
+    if (customImages.includes(baseName)) {
+        alert('该图片文件名已存在！');
+        return;
+    }
+    
+    // 添加到列表
+    customImages.push(baseName);
+    saveCustomImageNames(customImages);
+    
+    // 清空输入框
+    input.value = '';
+    
+    // 刷新图片列表
+    refreshImageList();
+    
+    alert(`已添加图片文件名: ${imageName}\n正在重新扫描图片列表...`);
+}
+
+// 移除自定义图片文件名
+function removeCustomImage(baseName) {
+    if (confirm(`确定要移除自定义图片文件名 "${baseName}" 吗？`)) {
+        const customImages = getCustomImageNames();
+        const index = customImages.indexOf(baseName);
+        if (index > -1) {
+            customImages.splice(index, 1);
+            saveCustomImageNames(customImages);
+            refreshImageList();
+        }
+    }
+}
+
+// 显示自定义图片管理界面
+function showCustomImageManager() {
+    const customImages = getCustomImageNames();
+    if (customImages.length === 0) {
+        alert('暂无自定义图片文件名');
+        return;
+    }
+    
+    const message = '自定义图片文件名列表：\n' + 
+                   customImages.map((name, index) => `${index + 1}. ${name}`).join('\n') +
+                   '\n\n要移除某个文件名吗？';
+    
+    if (confirm(message)) {
+        const nameToRemove = prompt('请输入要移除的文件名（不含扩展名）:');
+        if (nameToRemove && customImages.includes(nameToRemove.trim())) {
+            removeCustomImage(nameToRemove.trim());
+        }
+    }
+}
+</script>
+</html>ist = await loadImageList();
+        
+        // 移除加载状态
+        select.innerHTML = '<option value="">请选择图片</option>';
+        
+        if (imageList.length > 0) {
+            imageList.forEach(image => {
+                const option = document.createElement('option');
+                option.value = image.path;
+                option.textContent = image.name;
+                select.appendChild(option);
+            });
+            
+            // 恢复之前选择的值
+            if (currentValue && imageList.some(img => img.path === currentValue)) {
+                select.value = currentValue;
+            }
+            
+            console.log(`成功加载 ${imageList.length} 张图片:`, imageList);
+        } else {
+            // 没有找到图片时的提示
+            const noImageOption = document.createElement('option');
+            noImageOption.value = "";
+            noImageOption.textContent = "未找到图片文件";
+            noImageOption.disabled = true;
+            select.appendChild(noImageOption);
+            
+            console.log('未在images文件夹中找到支持的图片文件');
+        }
+    } catch (error) {
+        console.error('刷新图片列表时出错:', error);
+        // 错误时的提示
+        select.innerHTML = '<option value="">加载图片列表失败</option>';
+    }
+}nsole.log(`找到 ${imageList.length} 个图片文件`);
+        } else {
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = '未找到图片文件';
+            option.disabled = true;
+            select.appendChild(option);
+            console.log('images文件夹中没有找到图片文件');
+        }
+    } catch (error) {
+        console.error('刷新图片列表失败:', error);
+    }
+}
+
+// 处理图片选择
+function handleImageSelect(select) {
+    const selectedPath = select.value;
+    if (selectedPath) {
+        customStyles.backgroundImage = selectedPath;
+        // 清空URL输入框
+        const urlInput = document.getElementById('backgroundImage');
+        if (urlInput) urlInput.value = '';
+        console.log('选择了图片:', selectedPath);
+        
+        // 保存选择的图片到本地存储
+        saveSelectedImage(selectedPath);
+        
+        // 应用样式
+        applyStyles();
+    }
+}
+
+// 保存选择的图片到本地存储
+function saveSelectedImage(imagePath) {
+    try {
+        localStorage.setItem('selectedBackgroundImage', imagePath);
+        console.log('图片选择已保存:', imagePath);
+    } catch (error) {
+        console.error('保存图片选择时出错:', error);
+    }
+}
+
+// 加载保存的图片选择
+function loadSelectedImage() {
+    try {
+        const savedImage = localStorage.getItem('selectedBackgroundImage');
+        if (savedImage) {
+            const select = document.getElementById('backgroundImageSelect');
+            if (select) {
+                // 需要等待图片列表加载完成后再设置选择
+                setTimeout(() => {
+                    if (select.querySelector(`option[value="${savedImage}"]`)) {
+                        select.value = savedImage;
+                        customStyles.backgroundImage = savedImage;
+                        console.log('恢复保存的图片选择:', savedImage);
+                    } else {
+                        console.log('保存的图片文件已不存在:', savedImage);
+                        localStorage.removeItem('selectedBackgroundImage');
+                    }
+                }, 500);
+            }
+        }
+    } catch (error) {
+        console.error('加载图片选择时出错:', error);
+    }
+}
+
+// 样式设置功能
+let customStyles = {
+    fontSize: 'medium',
+    fontFamily: 'default',
+    backgroundType: 'gradient',
+    gradientColor1: '#e68aff',
+    gradientColor2: '#0984e3',
+    gradientColor3: '#6c5ce7',
+    solidColor: '#6c5ce7',
+    backgroundImage: '',
+    titleColor: '#ffffff',
+    earningsColor: '#d22eff',
+    countdownColor: '#ffffff',
+    progressColor: '#ffffff',
+    statusColor: '#ffffff',
+    settingLabelColor: '#e68aff'
+};
+
+// 切换样式设置面板显示
+function toggleStylePanel() {
+    const panel = document.getElementById('stylePanel');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+// 关闭样式设置面板
+function closeStylePanel(event) {
+    // 阻止事件冒泡，防止触发拖动
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    
+    const panel = document.getElementById('stylePanel');
+    panel.style.display = 'none';
+    
+    // 添加一个小动画效果
+    panel.style.opacity = '0';
+    setTimeout(() => {
+        panel.style.opacity = '1';
+    }, 100);
+}
+
+// 拖动功能变量
+let isDragging = false;
+let dragOffsetX = 0;
+let dragOffsetY = 0;
+
+// 开始拖动
+function startDrag(e) {
+    // 检查是否点击了关闭按钮
+    if (e.target.onclick && e.target.onclick.toString().includes('closeStylePanel')) {
+        return;
+    }
+    
+    const panel = document.getElementById('stylePanel');
+    const rect = panel.getBoundingClientRect();
+    
+    isDragging = true;
+    dragOffsetX = e.clientX - rect.left;
+    dragOffsetY = e.clientY - rect.top;
+    
+    // 添加全局事件监听器
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', stopDrag);
+    
+    // 防止文本选择
+    e.preventDefault();
+}
+
+// 拖动过程
+function drag(e) {
+    if (!isDragging) return;
+    
+    const panel = document.getElementById('stylePanel');
+    const newX = e.clientX - dragOffsetX;
+    const newY = e.clientY - dragOffsetY;
+    
+    // 限制在窗口范围内
+    const maxX = window.innerWidth - panel.offsetWidth;
+    const maxY = window.innerHeight - panel.offsetHeight;
+    
+    const constrainedX = Math.max(0, Math.min(newX, maxX));
+    const constrainedY = Math.max(0, Math.min(newY, maxY));
+    
+    panel.style.left = constrainedX + 'px';
+    panel.style.top = constrainedY + 'px';
+    panel.style.transform = 'none'; // 移除居中变换
+}
+
+// 停止拖动
+function stopDrag() {
+    isDragging = false;
+    document.removeEventListener('mousemove', drag);
+    document.removeEventListener('mouseup', stopDrag);
+}
+
+// 切换背景选项显示
+function toggleBackgroundOptions() {
+    const backgroundType = document.getElementById('backgroundType').value;
+    const gradientOptions = document.getElementById('gradientOptions');
+    const solidOptions = document.getElementById('solidOptions');
+    const imageOptions = document.getElementById('imageOptions');
+
+    gradientOptions.style.display = backgroundType === 'gradient' ? 'block' : 'none';
+    solidOptions.style.display = backgroundType === 'solid' ? 'block' : 'none';
+    imageOptions.style.display = backgroundType === 'image' ? 'block' : 'none';
+
+    // 立即应用背景更改
+    applyStyles();
+}
+
+// 处理本地图片上传
+function handleImageUpload(input) {
+    const file = input.files[0];
+    if (file) {
+        // 检查文件类型
+        if (!file.type.startsWith('image/')) {
+            alert('请选择图片文件！');
+            return;
+        }
+        
+        // 检查文件大小（限制为5MB）
+        if (file.size > 5 * 1024 * 1024) {
+            alert('图片文件过大，请选择小于5MB的图片！');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // 确保图片数据正确读取
+            const imageData = e.target.result;
+            console.log('图片数据长度:', imageData.length);
+            console.log('图片数据前100字符:', imageData.substring(0, 100));
+            
+            // 更新样式设置
+            customStyles.backgroundImage = imageData;
+            customStyles.backgroundType = 'image';
+            
+            // 更新界面控件
+            document.getElementById('backgroundType').value = 'image';
+            document.getElementById('backgroundImage').value = '本地图片已选择';
+            
+            // 切换显示选项
+            toggleBackgroundOptions();
+            
+            // 立即应用样式
+            applyStylesForced();
+            
+            showSaveStatus('📁 本地图片已加载', 2000);
+        };
+        
+        reader.onerror = function() {
+            alert('图片读取失败，请重试！');
+        };
+        
+        reader.readAsDataURL(file);
+    }
+}
+
+// 验证图片链接是否有效
+function validateImageUrl(url) {
+    return new Promise((resolve) => {
+        if (!url || url === '本地图片已选择') {
+            resolve(true);
+            return;
+        }
+        
+        const img = new Image();
+        const timeoutId = setTimeout(() => {
+            resolve(false);
+        }, 5000); // 5秒超时
+        
+        img.onload = function() {
+            clearTimeout(timeoutId);
+            resolve(true);
+        };
+        
+        img.onerror = function() {
+            clearTimeout(timeoutId);
+            resolve(false);
+        };
+        
+        img.src = url;
+    });
+}
+
+// 应用样式设置
+function applyStyles() {
+    // 获取当前设置值
+    customStyles.fontSize = document.getElementById('fontSize').value;
+    customStyles.fontFamily = document.getElementById('fontFamily').value;
+    customStyles.backgroundType = document.getElementById('backgroundType').value;
+    customStyles.gradientColor1 = document.getElementById('gradientColor1').value;
+    customStyles.gradientColor2 = document.getElementById('gradientColor2').value;
+    customStyles.gradientColor3 = document.getElementById('gradientColor3').value;
+    customStyles.solidColor = document.getElementById('solidColor').value;
+    
+    // 处理背景图片
+    const backgroundImageInput = document.getElementById('backgroundImage').value;
+    if (backgroundImageInput !== customStyles.backgroundImage) {
+        customStyles.backgroundImage = backgroundImageInput;
+    }
+    
+    customStyles.titleColor = document.getElementById('titleColor').value;
+    customStyles.earningsColor = document.getElementById('earningsColor').value;
+    customStyles.countdownColor = document.getElementById('countdownColor').value;
+    customStyles.progressColor = document.getElementById('progressColor').value;
+    customStyles.statusColor = document.getElementById('statusColor').value;
+    customStyles.settingLabelColor = document.getElementById('settingLabelColor').value;
+
+    // 创建或更新动态样式
+    let styleElement = document.getElementById('custom-styles');
+    if (!styleElement) {
+        styleElement = document.createElement('style');
+        styleElement.id = 'custom-styles';
+        document.head.appendChild(styleElement);
+    }
+
+    // 构建字体大小映射
+    const fontSizeMap = {
+        small: '0.8',
+        medium: '1',
+        large: '1.2',
+        xlarge: '1.5'
+    };
+
+    // 构建字体家族映射
+    const fontFamilyMap = {
+        default: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+        serif: "'SimSun', serif",
+        'sans-serif': "'SimHei', 'Microsoft YaHei', sans-serif",
+        monospace: "'Courier New', monospace",
+        cursive: "'KaiTi', cursive"
+    };
+
+    // 构建背景样式
+    let backgroundStyle = '';
+    switch (customStyles.backgroundType) {
+        case 'gradient':
+            backgroundStyle = `linear-gradient(135deg, ${customStyles.gradientColor1} 0%, ${customStyles.gradientColor2} 50%, ${customStyles.gradientColor3} 100%)`;
+            break;
+        case 'solid':
+            backgroundStyle = customStyles.solidColor;
+            break;
+        case 'image':
+            if (customStyles.backgroundImage) {
+                // 如果是网络图片链接，验证其有效性
+                if (customStyles.backgroundImage.startsWith('http') && customStyles.backgroundImage !== '本地图片已选择') {
+                    validateImageUrl(customStyles.backgroundImage).then(isValid => {
+                        if (!isValid) {
+                            alert('图片链接无效或加载失败，请检查链接是否正确！\n\n建议：\n1. 确保图片链接可以在浏览器中直接访问\n2. 尝试使用本地图片\n3. 检查网络连接');
+                            // 回退到渐变背景
+                            document.getElementById('backgroundType').value = 'gradient';
+                            customStyles.backgroundType = 'gradient';
+                            document.getElementById('backgroundImage').value = '';
+                            customStyles.backgroundImage = '';
+                            toggleBackgroundOptions();
+                            applyStyles();
+                        }
+                    });
+                }
+                backgroundStyle = `url('${customStyles.backgroundImage}') center/cover no-repeat fixed`;
+            } else {
+                backgroundStyle = `linear-gradient(135deg, ${customStyles.gradientColor1} 0%, ${customStyles.gradientColor2} 50%, ${customStyles.gradientColor3} 100%)`;
+            }
+            break;
+    }
+
+    const dynamicCSS = `
+        body {
+            background: ${backgroundStyle} !important;
+            font-family: ${fontFamilyMap[customStyles.fontFamily]} !important;
+            font-size: calc(${fontSizeMap[customStyles.fontSize]}rem * var(--base-font-size, 1)) !important;
+        }
+        
+        .title, .subtitle, .period-title {
+            color: ${customStyles.titleColor} !important;
+        }
+        
+        .earnings-title, .earnings-value, .earnings-item-value {
+            color: ${customStyles.earningsColor} !important;
+        }
+        
+        .countdown-value {
+            color: ${customStyles.countdownColor} !important;
+        }
+        
+        .progress-header span {
+            color: ${customStyles.progressColor} !important;
+        }
+        
+        #morningStatusText, #afternoonStatusText, .countdown-label {
+            color: ${customStyles.statusColor} !important;
+        }
+        
+        .time-setting h3, .earnings-title, .style-section h5 {
+            color: ${customStyles.settingLabelColor} !important;
+        }
+        
+        /* 字体大小调整 */
+        .title {
+            font-size: calc(1.8rem * ${fontSizeMap[customStyles.fontSize]}) !important;
+        }
+        
+        .subtitle {
+            font-size: calc(0.9rem * ${fontSizeMap[customStyles.fontSize]}) !important;
+        }
+        
+        .countdown-value {
+            font-size: calc(1.3rem * ${fontSizeMap[customStyles.fontSize]}) !important;
+        }
+        
+        .earnings-value {
+            font-size: calc(1.8rem * ${fontSizeMap[customStyles.fontSize]}) !important;
+        }
+        
+        .period-title {
+            font-size: calc(1.2rem * ${fontSizeMap[customStyles.fontSize]}) !important;
+        }
+    `;
+
+    styleElement.textContent = dynamicCSS;
+}
+
+// 强制应用样式（用于本地图片上传）
+function applyStylesForced() {
+    console.log('强制应用样式，背景类型:', customStyles.backgroundType);
+    console.log('背景图片数据:', customStyles.backgroundImage ? customStyles.backgroundImage.substring(0, 50) + '...' : 'null');
+    
+    // 直接设置body背景
+    if (customStyles.backgroundType === 'image' && customStyles.backgroundImage) {
+        const backgroundStyle = `url('${customStyles.backgroundImage}') center/cover no-repeat fixed`;
+        document.body.style.background = backgroundStyle;
+        document.body.style.backgroundAttachment = 'fixed';
+        console.log('直接应用背景图片:', backgroundStyle.substring(0, 100) + '...');
+    } else {
+        // 调用正常的应用样式函数
+        applyStyles();
+    }
+}
+
+// 保存自定义样式
+function saveCustomStyles() {
+    localStorage.setItem('customStyles', JSON.stringify(customStyles));
+    showSaveStatus('🎨 样式设置已保存', 2000);
+    
+    // 延迟关闭面板，让用户看到保存成功的提示
+    setTimeout(() => {
+        closeStylePanel();
+    }, 1000);
+}
+
+// 重置样式到默认值
+function resetStyles() {
+    if (confirm('确定要重置所有样式设置到默认值吗？')) {
+        // 重置设置值
+        customStyles = {
+            fontSize: 'medium',
+            fontFamily: 'default',
+            backgroundType: 'gradient',
+            gradientColor1: '#e68aff',
+            gradientColor2: '#0984e3',
+            gradientColor3: '#6c5ce7',
+            solidColor: '#6c5ce7',
+            backgroundImage: '',
+            titleColor: '#ffffff',
+            earningsColor: '#d22eff',
+            countdownColor: '#ffffff',
+            progressColor: '#ffffff',
+            statusColor: '#ffffff',
+            settingLabelColor: '#e68aff'
+        };
+
+        // 更新界面控件
+        loadStylesToInterface();
+        
+        // 应用样式
+        applyStyles();
+        
+        // 删除本地存储
+        localStorage.removeItem('customStyles');
+        
+        showSaveStatus('🔄 已重置到默认样式', 2000);
+    }
+}
+
+// 将样式设置加载到界面控件
+function loadStylesToInterface() {
+    document.getElementById('fontSize').value = customStyles.fontSize;
+    document.getElementById('fontFamily').value = customStyles.fontFamily;
+    document.getElementById('backgroundType').value = customStyles.backgroundType;
+    document.getElementById('gradientColor1').value = customStyles.gradientColor1;
+    document.getElementById('gradientColor2').value = customStyles.gradientColor2;
+    document.getElementById('gradientColor3').value = customStyles.gradientColor3;
+    document.getElementById('solidColor').value = customStyles.solidColor;
+    document.getElementById('backgroundImage').value = customStyles.backgroundImage;
+    document.getElementById('titleColor').value = customStyles.titleColor;
+    document.getElementById('earningsColor').value = customStyles.earningsColor;
+    document.getElementById('countdownColor').value = customStyles.countdownColor;
+    document.getElementById('progressColor').value = customStyles.progressColor;
+    document.getElementById('statusColor').value = customStyles.statusColor;
+    document.getElementById('settingLabelColor').value = customStyles.settingLabelColor;
+    
+    // 更新背景选项显示
+    toggleBackgroundOptions();
+}
+
+// 加载保存的自定义样式
+function loadCustomStyles() {
+    try {
+        const saved = localStorage.getItem('customStyles');
+        if (saved) {
+            customStyles = { ...customStyles, ...JSON.parse(saved) };
+            loadStylesToInterface();
+            applyStyles();
+        }
+    } catch (error) {
+        console.error('加载自定义样式时出错:', error);
+    }
+}
+
+// 在页面加载时应用保存的样式
+window.addEventListener('DOMContentLoaded', function() {
+    loadCustomStyles();
+});
+</script>
+</body>
+</html>
